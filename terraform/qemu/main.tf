@@ -1,0 +1,129 @@
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "telmate/proxmox"
+      version = "3.0.1-rc3"
+    }
+  }
+}
+
+provider "proxmox" {
+  pm_api_url      = var.pm_api_url
+  pm_user         = var.pm_user
+  pm_password     = var.pm_password
+  pm_tls_insecure = true
+}
+
+resource "proxmox_vm_qemu" "plex_vm" {
+  name        = "plex-vm"
+  target_node = "pve"
+  clone       = "debian-12-template"  # Name of your cloud-init template
+
+  cores       = 4
+  memory      = 2048
+  sockets     = 1
+  scsihw      = "virtio-scsi-pci"
+  bios        = "ovmf"
+  agent       = 1
+  
+  hostpci {
+    host = "0000:00:02.0"
+    rombar = 1
+    pcie = 0
+  }
+  
+  disks {
+    virtio {
+        virtio0 {
+            disk {
+                size = 100
+                storage = "local-lvm"
+            }
+        }
+    }
+    ide {
+        ide2 {
+          cloudinit {
+            storage = "local-lvm"
+          }
+        }
+    }
+  }
+
+  network {
+    model     = "virtio"
+    bridge    = "vmbr0"
+  }
+  
+  os_type    = "cloud-init"
+  cicustom   = "vendor=local:snippets/plex.yaml"
+  ciuser     = "plex"
+  ipconfig0  = "ip=10.0.0.19/24,gw=10.0.0.1"  # Configure IP using cloud-init
+  nameserver = "1.1.1.1"
+
+  sshkeys = <<EOF
+  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4o/s7abXCP8bN4csqJ89boo3AAOS7fbSoFB0OxjEwIVdUvwXijCnlYrqT5eBdft4yy3SY2RJ3pa+2JNbC6FFqGuEu7HudLiCY0qfoxVD6O6Ds3h5C4Wn3eaQ6tWqE+mn3jQs5Aj3n16/qB1oTr9Pw2+mhuTO1gCjop0U3K8vlQuWUQlQhlTYf977qEejfL7IwJHaNcJQIUUBgrR3b8VCe1EBa5C0CLutxAKRRpmv80EkkEKULUYdV9Klg3DXeZYNyBXBfPm8YZMJhtpnJ6xMTzzGlqjuoOPiqDqlw0SyhpplzaZLjKcG6urF7wgmvQdIpi5GKmdWundXKOETaC/1R davidmcgough@Davids-iMac.home
+  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDbfXSyv6ugfAEBac79iqSIYI9BDyowe98RSlKlwLoPoImWefhKAzYEpk64TSqdItKK7td9Tbp6poPfiNvM3ZrBWU+pIWr2yGLvthF021R/1csQnSZjm6TNuIjwztaWfktZsiCwIK8bCAWy3ZUDDDvA0B93SswhqD7saR+WojRukGgIxc44wSGaw8Zp2h8CMh30ApozNCUG7pRfm/va7xm7WcJLYi3Fo1nR3BVqwyjPtMijb30QZ/Y9w9sH7UMW8XDJ/mBn0J4pECSCsiL57s/yr7MxVMXf+llxlf9Lh9+A3x0BTLYnWnZWe8oqmSNbZOYwsn1JlpF9wAThCuoe8YRPfGzby+kE4ZBB5ZfZvZeIW171pGMh1TVEzQhRSQA76Bdewt6n1vqhXiiEROnQX4iRjnd6y97pXFX1bwh++SZNZH9mAd/8Y92kzPg2wgk6ZJSrJ7O04Opa/h5Z5+a1LEB8F+HFTB+Jlu1w2hkWI8bIFcjepsM6BhIHat2cKIv3/oyKIKMx49YqG8T988WKj0vTZnaBAB3ZJiO50Ni4xkswUUwiPhI2ww5jbHZpAOvu4pNo1qLJAdDQxhPM5Uzea8oWxTgeeG/9WEy6NbNAJgn40CTzkJK9A7cnEjU5DbUY+1zlK3fRe+8xzPUCU757V5JdxX3sQgPi6umRdG1O2DoIgQ== root@pve
+  EOF
+
+  boot       = "order=virtio0"    
+
+}
+
+output "plex_vm_id" {
+  value = proxmox_vm_qemu.plex_vm.vmid
+}
+
+resource "proxmox_vm_qemu" "pihole_vm" {
+  name        = "pihole-vm"
+  target_node = "pve"
+  clone       = "debian-12-template"  # Name of your cloud-init template
+
+  cores       = 2
+  memory      = 2048
+  sockets     = 1
+  scsihw      = "virtio-scsi-pci"
+  bios        = "ovmf"
+  agent       = 1
+
+  disks {
+    virtio {
+        virtio0 {
+            disk {
+                size = 32
+                storage = "local-lvm"
+            }
+        }
+    }
+    ide {
+        ide2 {
+          cloudinit {
+            storage = "local-lvm"
+          }
+        }
+    }
+  }
+
+  network {
+    model     = "virtio"
+    bridge    = "vmbr0"
+  }
+  
+  os_type    = "cloud-init"
+  cicustom   = "vendor=local:snippets/pihole.yaml"
+  ciuser     = "pihole"
+  ipconfig0  = "ip=10.0.0.17/24,gw=10.0.0.1"  # Configure IP using cloud-init
+  nameserver = "1.1.1.1"
+
+  sshkeys = <<EOF
+  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4o/s7abXCP8bN4csqJ89boo3AAOS7fbSoFB0OxjEwIVdUvwXijCnlYrqT5eBdft4yy3SY2RJ3pa+2JNbC6FFqGuEu7HudLiCY0qfoxVD6O6Ds3h5C4Wn3eaQ6tWqE+mn3jQs5Aj3n16/qB1oTr9Pw2+mhuTO1gCjop0U3K8vlQuWUQlQhlTYf977qEejfL7IwJHaNcJQIUUBgrR3b8VCe1EBa5C0CLutxAKRRpmv80EkkEKULUYdV9Klg3DXeZYNyBXBfPm8YZMJhtpnJ6xMTzzGlqjuoOPiqDqlw0SyhpplzaZLjKcG6urF7wgmvQdIpi5GKmdWundXKOETaC/1R davidmcgough@Davids-iMac.home
+  ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDbfXSyv6ugfAEBac79iqSIYI9BDyowe98RSlKlwLoPoImWefhKAzYEpk64TSqdItKK7td9Tbp6poPfiNvM3ZrBWU+pIWr2yGLvthF021R/1csQnSZjm6TNuIjwztaWfktZsiCwIK8bCAWy3ZUDDDvA0B93SswhqD7saR+WojRukGgIxc44wSGaw8Zp2h8CMh30ApozNCUG7pRfm/va7xm7WcJLYi3Fo1nR3BVqwyjPtMijb30QZ/Y9w9sH7UMW8XDJ/mBn0J4pECSCsiL57s/yr7MxVMXf+llxlf9Lh9+A3x0BTLYnWnZWe8oqmSNbZOYwsn1JlpF9wAThCuoe8YRPfGzby+kE4ZBB5ZfZvZeIW171pGMh1TVEzQhRSQA76Bdewt6n1vqhXiiEROnQX4iRjnd6y97pXFX1bwh++SZNZH9mAd/8Y92kzPg2wgk6ZJSrJ7O04Opa/h5Z5+a1LEB8F+HFTB+Jlu1w2hkWI8bIFcjepsM6BhIHat2cKIv3/oyKIKMx49YqG8T988WKj0vTZnaBAB3ZJiO50Ni4xkswUUwiPhI2ww5jbHZpAOvu4pNo1qLJAdDQxhPM5Uzea8oWxTgeeG/9WEy6NbNAJgn40CTzkJK9A7cnEjU5DbUY+1zlK3fRe+8xzPUCU757V5JdxX3sQgPi6umRdG1O2DoIgQ== root@pve
+  EOF
+
+  boot       = "order=virtio0"    
+
+}
+
+output "vm_id" {
+  value = proxmox_vm_qemu.pihole_vm.vmid
+}
