@@ -35,7 +35,7 @@ runcmd:
 # Taken from https://forum.proxmox.com/threads/combining-custom-cloud-init-with-auto-generated.59008/page-3#post-428772
 EOF
 
-qm set $VMID --cicustom "vendor=remote-zfs:snippets/debian-12-docker.yaml"
+qm set $VMID --cicustom "vendor=local:snippets/debian-12-docker.yaml"
 qm set $VMID --tags debian-template,debian-12,cloudinit,docker
 qm set $VMID --ciuser $USER
 qm set $VMID --sshkeys ~/.ssh/authorized_keys

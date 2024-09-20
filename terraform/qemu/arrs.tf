@@ -1,20 +1,20 @@
-resource "proxmox_vm_qemu" "plex_vm" {
-  name        = "plex-vm"
+resource "proxmox_vm_qemu" "arrs_vm" {
+  name        = "arrs-vm"
   target_node = "pve"
-  clone       = "debian-12-template"  # Name of your cloud-init template
+  clone       = "debian-12-template-dcoker"  # Name of your cloud-init template
 
-  cores       = 4
+  cores       = 2
   memory      = 2048
   sockets     = 1
   scsihw      = "virtio-scsi-pci"
   bios        = "ovmf"
-  agent       = 1 
-  
+  agent       = 1
+
   disks {
     virtio {
         virtio0 {
             disk {
-                size = 100
+                size = 32
                 storage = "local-lvm"
             }
         }
@@ -34,9 +34,9 @@ resource "proxmox_vm_qemu" "plex_vm" {
   }
   
   os_type    = "cloud-init"
-  cicustom   = "vendor=local:snippets/plex.yaml"
-  ciuser     = "plex"
-  ipconfig0  = "ip=10.0.0.19/24,gw=10.0.0.1"  # Configure IP using cloud-init
+  #cicustom   = "vendor=local:snippets/pihole.yaml"
+  ciuser     = "arrs"
+  ipconfig0  = "ip=10.0.0.18/24,gw=10.0.0.1"  # Configure IP using cloud-init
   nameserver = "1.1.1.1"
 
   sshkeys = <<EOF
