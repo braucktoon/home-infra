@@ -1,15 +1,12 @@
 #!/bin/bash
 
-#clean 
-rm -rf ./home-infra
- 
 # Variables
 TARGET_DIR="/var/lib/vz/snippets"   # Replace with your target directory path
 SOURCE_DIR="./home-infra/cloud-init/apps"
 # GitHub repository URL
 REPO_URL="https://github.com/braucktoon/home-infra.git"
 # Directory where the repo will be cloned
-CLONE_DIR="home-infa"
+CLONE_DIR="home-infra"
 # Call additional scripts with error checking
 SCRIPT1="./home-infra/cloud-init/debian/debian-12-cloudinit.sh"
 SCRIPT2="./home-infra/cloud-init/debian/debian-12-cloudinit+docker.sh"
@@ -31,6 +28,7 @@ fi
 
 # Clone the repository
 echo "Cloning repository from $REPO_URL..."
+rm -rf "$CLONE_DIR"
 git clone "$REPO_URL" "$CLONE_DIR" || error_exit "Failed to clone repository. Exiting..."
 
 # Check if the clone was successful
