@@ -20,7 +20,7 @@ qm set $VMID --scsihw virtio-scsi-pci --virtio0 $STORAGE:vm-$VMID-disk-1,discard
 qm set $VMID --boot order=virtio0
 qm set $VMID --scsi1 $STORAGE:cloudinit
 
-cat << EOF | tee /mnt/pve/remote-nfs/snippets/debian-12-docker.yaml
+cat << EOF | tee /var/lib/vz/snippets/debian-12-docker.yaml
 #cloud-config
 runcmd:
     - apt-get update
