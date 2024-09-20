@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Variables
-TARGET_DIR="/var/lib/vz/snippets"   # Replace with your target directory path
-SOURCE_DIR="./home-infra/cloud-init/apps"
-# GitHub repository URL
-REPO_URL="https://github.com/braucktoon/home-infra.git"
 # Directory where the repo will be cloned
 CLONE_DIR="home-infra"
+TARGET_DIR="/var/lib/vz/snippets"   # Replace with your target directory path
+SOURCE_DIR="$CLONE_DIR/cloud-init/apps"
+# GitHub repository URL
+REPO_URL="https://github.com/braucktoon/home-infra.git"
 # Call additional scripts with error checking
-SCRIPT1="./home-infra/cloud-init/debian/debian-12-cloudinit.sh"
-SCRIPT2="./home-infra/cloud-init/debian/debian-12-cloudinit+docker.sh"
+SCRIPT1="$CLONE_DIR/cloud-init/debian/debian-12-cloudinit.sh"
+SCRIPT2="$CLONE_DIR/cloud-init/debian/debian-12-cloudinit+docker.sh"
 
 # Function to handle errors
 error_exit() {
