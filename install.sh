@@ -9,7 +9,6 @@ SOURCE_DIR="$CLONE_DIR/cloud-init/apps"
 REPO_URL="https://github.com/braucktoon/home-infra.git"
 # Call additional scripts with error checking
 SCRIPT1="$CLONE_DIR/cloud-init/debian/debian-12-cloudinit.sh"
-SCRIPT2="$CLONE_DIR/cloud-init/debian/debian-12-cloudinit+docker.sh"
 
 # Function to handle errors
 error_exit() {
@@ -55,7 +54,7 @@ else
   echo "No .yaml files found in $SOURCE_DIR."
 fi
 
-if [ -f "$SCRIPT1" ] && [ -f "$SCRIPT2" ]; then
+if [ -f "$SCRIPT1" ]; then
   echo "Calling script1.sh..."
   bash "$SCRIPT1"
   if [ $? -ne 0 ]; then
@@ -63,15 +62,8 @@ if [ -f "$SCRIPT1" ] && [ -f "$SCRIPT2" ]; then
     exit 1
   fi
 
-  echo "Calling script2.sh..."
-  bash "$SCRIPT2"
-  if [ $? -ne 0 ]; then
-    echo "Error: script2.sh failed." >&2
-    exit 1
-  fi
-
 else
-  echo "One or more scripts not found. Please check the paths."
+  echo "Script not found. Please check the paths."
   exit 1
 fi
 
