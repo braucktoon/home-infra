@@ -1,0 +1,21 @@
+#cloud-config
+
+packages:
+  - nfs-common
+
+# Commands to be executed on first boot
+runcmd:
+  # Create NFS mount point directory
+  - mkdir -p /mnt/docker
+  # Mount all filesystems defined in /etc/fstab
+  - mount -a
+  # Add the user to the docker group
+  - usermod -aG docker docker  
+
+# NFS Configuration 
+mounts:
+  # Example: Mount NFS share from 10.0.0.2 at /mnt/media
+  - [ "10.0.0.2:/volume1/docker", "/mnt/docker", "nfs", "defaults", "0", "0" ]
+
+# Set Docker VM configuration
+final_message: "Docker VM installation and NFS mount complete!"

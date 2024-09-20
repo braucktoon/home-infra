@@ -1,5 +1,5 @@
-resource "proxmox_vm_qemu" "arrs_vm" {
-  name        = "arrs-vm"
+resource "proxmox_vm_qemu" "docker_vm" {
+  name        = "docker-vm"
   target_node = "pve"
   clone       = "debian-12-template-dcoker"  # Name of your cloud-init template
 
@@ -34,8 +34,8 @@ resource "proxmox_vm_qemu" "arrs_vm" {
   }
   
   os_type    = "cloud-init"
-  #cicustom   = "vendor=local:snippets/pihole.yaml"
-  ciuser     = "arrs"
+  cicustom   = "vendor=local:snippets/docker.yaml"
+  ciuser     = "docker"
   ipconfig0  = "ip=10.0.0.18/24,gw=10.0.0.1"  # Configure IP using cloud-init
   nameserver = "1.1.1.1"
 
