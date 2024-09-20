@@ -1,7 +1,7 @@
 #! /bin/bash
 
 VMID=8000
-STORAGE=local-zfs
+STORAGE=local-lvm
 
 set -x
 rm -f debian-12-generic-amd64.qcow2
