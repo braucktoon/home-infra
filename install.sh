@@ -2,11 +2,14 @@
 
 # Variables
 TARGET_DIR="/var/lib/vz/snippets"   # Replace with your target directory path
-SOURCE_DIR="./home-infra/cloud-init/apps"
+SOURCE_DIR="./home-infra/home-infra/cloud-init/apps"
 # GitHub repository URL
 REPO_URL="https://github.com/braucktoon/home-infra.git"
 # Directory where the repo will be cloned
-CLONE_DIR="."
+CLONE_DIR="home-infa"
+# Call additional scripts with error checking
+SCRIPT1="./home-infra/home-infra/cloud-init/debian/debian-12-cloudinit.sh"
+SCRIPT2="./home-infra/home-infra/cloud-init/debian/debian-12-cloudinit+docker.sh"
 
 # Function to handle errors
 error_exit() {
@@ -50,10 +53,6 @@ if ls "$SOURCE_DIR"/*.yaml 1> /dev/null 2>&1; then
 else
   echo "No .yaml files found in $SOURCE_DIR."
 fi
-
-# Call additional scripts with error checking
-SCRIPT1="./cloud-init/debian/debian-12-cloudinit.sh"
-SCRIPT2="./cloud-init/debian/debian-12-cloudinit+docker.sh"
 
 if [ -f "$SCRIPT1" ] && [ -f "$SCRIPT2" ] && [ -f "$SCRIPT3" ]; then
   echo "Calling script1.sh..."
