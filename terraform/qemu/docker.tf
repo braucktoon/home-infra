@@ -1,7 +1,7 @@
 resource "proxmox_vm_qemu" "docker_vm" {
   name        = "docker-vm"
   target_node = "pve"
-  clone       = "debian-12-template-dcoker"  # Name of your cloud-init template
+  clone       = "debian-12-template"  # Name of your cloud-init template
 
   cores       = 2
   memory      = 2048
