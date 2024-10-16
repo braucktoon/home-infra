@@ -1,3 +1,32 @@
+# Render the template file using the built-in templatefile() function
+locals {
+  pihole_cloud_init_content = templatefile("${path.module}/pihole-cloud-init.tpl", {
+    keepalived_auth_type = var.keepalived_auth_type
+    keepalived_pass      = var.keepalived_pass
+  })
+}
+
+# Write the rendered content to a local file
+resource "local_file" "pihole_cloud_init" {
+  content  = local.pihole_cloud_init_content
+  filename = "${path.module}/files/pihole-cloud-init.cfg"
+}
+
+# Transfer the file to the Proxmox Host
+resource "null_resource" "pihole_cloud_init" {
+  connection {
+    type        = "ssh"
+    user        = "root"
+    private_key = file("~/.ssh/id_rsa")
+    host        = "10.0.0.16"
+  }
+
+  provisioner "file" {
+    source      = local_file.pihole_cloud_init.filename
+    destination = "/var/lib/vz/snippets/pihole_cloud_init.yml"
+  }
+}
+
 resource "proxmox_vm_qemu" "pihole_vm" {
   name        = "pihole-vm"
   target_node = "pve"
@@ -32,9 +61,9 @@ resource "proxmox_vm_qemu" "pihole_vm" {
     model     = "virtio"
     bridge    = "vmbr0"
   }
-  
+
   os_type    = "cloud-init"
-  cicustom   = "vendor=local:snippets/pihole.yaml"
+  cicustom   = "vendor=local:snippets/pihole_cloud_init.yml"
   ciuser     = "pihole"
   ipconfig0  = "ip=10.0.0.17/24,gw=10.0.0.1"  # Configure IP using cloud-init
   nameserver = "1.1.1.1"

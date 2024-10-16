@@ -46,3 +46,6 @@ Thumbs.db
 # Ignore log files
 *.log
 
+# Ignore local files
+*.cfg
+

@@ -10,3 +10,11 @@ variable "pm_password" {
 variable "pm_api_url" {
   type = string
 }
+
+variable "keepalived_auth_type" {
+  type = string
+}
+
+variable "keepalived_pass" {
+  type = string
+}
