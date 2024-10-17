@@ -28,6 +28,7 @@ resource "null_resource" "pihole_cloud_init" {
 }
 
 resource "proxmox_vm_qemu" "pihole_vm" {
+  depends_on = [ null_resource.pihole_cloud_init ]
   name        = "pihole-vm"
   target_node = "pve"
   clone       = "debian-12-template"  # Name of your cloud-init template

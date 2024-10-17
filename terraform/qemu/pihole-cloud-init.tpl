@@ -5,6 +5,9 @@ packages:
   - unbound
   - qemu-guest-agent
   - keepalived
+  - fail2ban
+  - rsyslog
+  - sqlite3
 
 write_files:
   - path: /etc/unbound/unbound.conf.d/pi-hole.conf
@@ -122,7 +125,25 @@ write_files:
         }
       }
 
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port    = 22
+      filter  = sshd
+      logpath = /var/log/auth.log
+      maxretry = 3
+      
 runcmd:
+  # Update SSH configuration to be more secure.
+  - sed -i '/^PasswordAuthentication/s/.*/PasswordAuthentication no/' /etc/ssh/sshd_config || echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+  - sed -i '/^PermitRootLogin/s/.*/PermitRootLogin no/' /etc/ssh/sshd_config || echo 'PermitRootLogin no' >> /etc/ssh/sshd_config
+  - sed -i '/^UseDNS/s/.*/UseDNS no/' /etc/ssh/sshd_config || echo 'UseDNS no' >> /etc/ssh/sshd_config
+  - sed -i '/^PermitEmptyPasswords/s/.*/PermitEmptyPasswords no/' /etc/ssh/sshd_config || echo 'PermitEmptyPasswords no' >> /etc/ssh/sshd_config
+  - sed -i '/^ChallengeResponseAuthentication/s/.*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config || echo 'ChallengeResponseAuthentication no' >> /etc/ssh/sshd_config
+  - sed -i '/^X11Forwarding/s/.*/X11Forwarding no/' /etc/ssh/sshd_config || echo 'X11Forwarding no' >> /etc/ssh/sshd_config
+  - sed -i '/^GSSAPIAuthentication/s/.*/GSSAPIAuthentication no/' /etc/ssh/sshd_config || echo 'GSSAPIAuthentication no' >> /etc/ssh/sshd_config
+
     # install pihole silently, relies on setupVars.conf file being present in /etc/pihole. it is set above
   - |
     curl -sSL https://install.pi-hole.net | bash -s -- --unattended
@@ -131,6 +152,66 @@ runcmd:
   - |
     echo 'MAXDBDAYS=90' >> /etc/pihole/pihole-FTL.conf
     echo 'BLOCK_ICLOUD_PR=true' >> /etc/pihole/pihole-FTL.conf
+  
+    #add some pihole block lists to the gravity db and update gravity.  
+  - |
+    # Blocklist URLs to be added
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://raw.githubusercontent.com/PolishFiltersTeam/KADhosts/master/KADhosts.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.Spam/hosts', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://adaway.org/hosts.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://v.firebog.net/hosts/AdguardDNS.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://v.firebog.net/hosts/Easyprivacy.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://v.firebog.net/hosts/Prigent-Ads.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareHosts.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://osint.digitalside.it/Threat-Intel/lists/latestdomains.txt', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://zerodot1.gitlab.io/CoinBlockerLists/hosts_browser', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://raw.githubusercontent.com/chadmayfield/my-pihole-blocklists/master/lists/pi_blocklist_porn_top1m.list', 1, 'cloud-init');"
+    sqlite3 /etc/pihole/gravity.db "INSERT INTO adlist (address, enabled, comment) VALUES ('https://v.firebog.net/hosts/Prigent-Adult.txt', 1, 'cloud-init');"
+
+    # Update Pi-hole gravity to apply the new blocklists
+    pihole -g
+
+    sudo apt remove --purge sqlite3 -y
+    sudo apt autoremove -y
+
+    # echo all custom local DNS into custom.list
+  - |
+    echo "10.0.0.2 nas" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.4 fluff" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.5 pihole" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.6 backup-nas" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.7 floof" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 lola" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.9 biggie" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 nginx-proxy-manager.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 ha.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 nas.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 pihole.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 scrypted.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 z2m.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 heimdall.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 portainer.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 plex.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 grafana.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 jenkins.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 uptime-kuma.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 backup-nas.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 prowlarr.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 qbittorrent.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 sonarr.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 vw.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 emby.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 sabnzbd.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 radarr.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 zwave.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.10 gomey" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.233 new-proxy" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.14 banana" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 media.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 pve.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.15 media" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.8 tubesync.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
+    echo "10.0.0.4 vw.dev.mchouseface.com" | sudo tee -a /etc/pihole/custom.list
 
   - |
     # Restart services to apply configurations
@@ -144,7 +225,9 @@ runcmd:
 
   - systemctl start qemu-guest-agent
   - systemctm enable keepalived
+  - systemctm enable fail2ban
   - systemctl enable ssh
+  - systemctl restart ssh
   - reboot
 
 final_message: "Pi-hole and Unbound installation and configuration complete!"
