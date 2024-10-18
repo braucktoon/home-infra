@@ -1,0 +1,12 @@
+init:
+    terraform init
+
+destroy:
+    terraform apply -destroy
+
+plan:
+    terraform plan
+
+apply:
+    terraform apply
+    

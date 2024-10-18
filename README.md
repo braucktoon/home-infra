@@ -1,8 +1,4 @@
 This repository contains:
 
-cloud-init sripts for installing home services
-plex
-pihole
+My Terraform and cloud-init scripts for deploying my home lab VMs on Proxmox.  
 
-Install Home Assistant on proxmox
-bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/vm/haos-vm.sh)"
