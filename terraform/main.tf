@@ -31,7 +31,7 @@ module "plex_vm" {
   name                    = "plex-vm"
   node                    = "pve"
   template                = "debian-12-template"
-  cores                   = 2
+  cores                   = 4
   memory                  = 2048
   sockets                 = 1
   disk_size               = "128G"

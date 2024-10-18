@@ -9,4 +9,13 @@ plan:
 
 apply:
     terraform apply
+
+pihole:
+    terraform apply -target=module.pihole_vm
+
+plex:
+    terraform apply -target=module.plex_vm
+
+
+
     
