@@ -30,11 +30,12 @@ runcmd:
   - mount -a
   # Start the qemu-guest-agent
   - systemctl start qemu-guest-agent
+  - reboot
 
 # NFS Configuration
 mounts:
-  # Example: Mount NFS share from 10.0.0.2 at /mnt/media
-  - [ "10.0.0.2:/volume1/media", "/mnt/media", "nfs", "defaults", "0", "0" ]
+  # Example: Mount NFS share at /mnt/media
+  - [ "${nas_ip}:/volume1/media", "/mnt/media", "nfs", "defaults", "0", "0" ]
 
 # Set Plex configuration to run with necessary permissions
 final_message: "Plex Media Server installation and NFS mount complete!"

@@ -54,6 +54,7 @@ locals {
     pihole_ip            = var.cloud_init_vars.pihole_ip
     pihole_vip           = var.cloud_init_vars.pihole_vip
     secondary_pihole_ip  = var.cloud_init_vars.secondary_pihole_ip
+    nas_ip               = var.cloud_init_vars.nas_ip
   })
 }
 

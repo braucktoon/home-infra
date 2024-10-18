@@ -27,3 +27,7 @@ variable "cloud_init_vars" {
   description = "A map of cloud-init variables for different VMs."
   type        = map(map(any))
 }
+
+variable "plex_ip_address" {
+  type = string
+}
